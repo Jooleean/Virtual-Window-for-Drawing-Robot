@@ -17,6 +17,14 @@ float anchoColor = ancho / 16.0;
 float colorX = ancho/8.0, colorY = alto/8.0;
 float colorY1 = 7 * colorY, colorY2 = 6 * colorY, colorY3 = 5 * colorY;
 int color = 1;
+int lastX = -1, lastY;
+
+int puntos[1000][2];
+int datosRegistrados = 0;
+bool primerDato = true;
+
+float umbral = 15;
+float distanciaAnterior(int x, int y);
 
 int main(int argc, char* argv[])
 {
@@ -79,16 +87,21 @@ void OnDraw(void)
 
 	if (estado == 1) // dibujando
 	{
-		printf("dibujando ");
-
 		if (color == 1) glColor3ub(0, 0, 0);
 		if (color == 2) glColor3ub(230, 25, 25);
 		if (color == 3) glColor3ub(25, 25, 230);
 		 
-		glPushMatrix();
-		glTranslated(mouseX, mouseY, 0);
-		glutSolidCube(10);
-		glPopMatrix();
+		if (lastX != -1)
+		{
+			glLineWidth(10.0); // Grosor del "pincel"
+			glEnable(GL_LINE_SMOOTH);
+			glBegin(GL_LINE_STRIP);
+			glVertex2f(lastX, lastY);
+			glVertex2f(mouseX, mouseY);
+			glEnd();
+			lastX = mouseX;
+			lastY = mouseY;
+		}
 	}
 
 	//glutSwapBuffers(); // Para buffer doble
@@ -101,7 +114,7 @@ void OnKeyboardDown(unsigned char key, int x_t, int y_t)
 
 void OnTimer(int value)
 {
-		glutTimerFunc(200, OnTimer, 0);
+		glutTimerFunc(250, OnTimer, 0);
 		glutPostRedisplay();
 }
 
@@ -109,6 +122,9 @@ void mouseClick(int button, int state, int x, int y) {
 	
 	mouseX = x;
 	mouseY = alto - y;
+
+	lastX = mouseX;
+	lastY = mouseY;
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 
@@ -127,6 +143,7 @@ void mousePassive(int x, int y)
 	mouseY = alto - y;
 	estado = 0;
 
+	lastX = -1;
 }
 
 void mouseDrag(int x, int y)
@@ -134,4 +151,38 @@ void mouseDrag(int x, int y)
 	mouseX = x;
 	mouseY = alto - y;
 	estado = 1;
+
+	if (datosRegistrados < 999)
+	{
+		if (primerDato)
+		{
+			puntos[datosRegistrados][0] = mouseX;
+			puntos[datosRegistrados][1] = mouseY;
+			primerDato = false;
+		}
+		else
+		if (distanciaAnterior(puntos[datosRegistrados][0], puntos[datosRegistrados][1]) > umbral)
+		{
+			datosRegistrados++;
+			puntos[datosRegistrados][0] = mouseX;
+			puntos[datosRegistrados][1] = mouseY;
+			std::cout << "(" << puntos[datosRegistrados][0] << "," << puntos[datosRegistrados][1] << ")" << std::endl;
+
+			glColor3ub(250, 105, 25);
+			glPushMatrix();
+			glTranslated(puntos[datosRegistrados][0], puntos[datosRegistrados][1], 0);
+			glutSolidCube(5);
+			glPopMatrix();
+		}
+	}
+
+	glutPostRedisplay();
+}
+
+float distanciaAnterior(int x, int y) {
+
+	float distancia;
+	distancia = sqrt(pow(x - mouseX, 2) + pow(y - mouseY, 2));
+
+	return distancia;
 }
