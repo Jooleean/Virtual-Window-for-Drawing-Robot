@@ -1,0 +1,6 @@
+07/04/2026 19:46
+Trabajando en la colección de datos me doy cuenta de que hay dos opciones para el grabado de datos. Esto porque si se guarda cada dato cada vez que se arrastra el cursor, la colección puede llegar a ser redundante, donde un cambio mínimo en las coordenadas se guarda también:
+
+1. Grabar datos en el array cada n iteraciones. Con un iterador si se hace iterador%n solo se toman muestras cada 5 o 10 actualizaciones. 
+
+2. Grabar datos solo si la posición del ratón supera una distancia n al dato anterior guardado. Esto equilibra el espaciado pero requiere la implementación de otra función. Es mejor así que haré esto.
