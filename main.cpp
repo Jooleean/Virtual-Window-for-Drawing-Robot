@@ -53,6 +53,11 @@ int main(int argc, char* argv[])
 	glutPassiveMotionFunc(mousePassive);
 	glutMotionFunc(mouseDrag);
 
+	/*glClearColor(1.0f, 1.0f, 1.0f, 1.0f); // Por si se quiere dibujado sin borrado
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();*/
+
 	glutMainLoop();
 
 	return 0;
@@ -166,9 +171,10 @@ void mouseDrag(int x, int y)
 			datosRegistrados++;
 			puntos[datosRegistrados][0] = mouseX;
 			puntos[datosRegistrados][1] = mouseY;
-			std::cout << "(" << puntos[datosRegistrados][0] << "," << puntos[datosRegistrados][1] << ")" << std::endl;
+			std::cout << "(" << puntos[datosRegistrados][0] << "," << puntos[datosRegistrados][1] << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
+		
 
-			glColor3ub(250, 105, 25);
+			glColor3ub(250, 105, 25); // Dibuja puntos guardados
 			glPushMatrix();
 			glTranslated(puntos[datosRegistrados][0], puntos[datosRegistrados][1], 0);
 			glutSolidCube(5);
