@@ -22,4 +22,9 @@
   <ItemGroup>
     <Text Include="rastroCuadrados.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="puntos.h">
+      <Filter>Archivos de encabezado</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

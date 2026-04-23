@@ -1,11 +1,16 @@
 #include <iostream>
 #include "freeglut.h"
+#include "puntos.h"
+
+#include <iomanip> 
+#include <sstream>
 
 void OnDraw(void);		 
 void OnTimer(int value); 
 void OnKeyboardDown(unsigned char key, int x, int y); 	
 
 int ancho = 800, alto = 800;
+const double PI = 3.14159265358979;
 
 void mouseClick(int button, int state, int x, int y);
 void mousePassive(int x, int y);
@@ -17,11 +22,16 @@ float anchoColor = ancho / 16.0;
 float colorX = ancho/8.0, colorY = alto/8.0;
 float colorY1 = 7 * colorY, colorY2 = 6 * colorY, colorY3 = 5 * colorY;
 int color = 1;
-int lastX = -1, lastY;
+int lastX = -100000, lastY;
+bool levantadoPendiente = true;
+bool eligiendoColor = false;
 
-int puntos[1000][2];
+const float distLienzoX = 20;
+const float distLienzoY = 0;
+const float distLienzoZ = 10;
+
+Punto puntos[1000];
 int datosRegistrados = 0;
-bool primerDato = true;
 
 float umbral = 15;
 float distanciaAnterior(int x, int y);
@@ -62,6 +72,7 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
 void OnDraw(void)
 {	
 	glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -96,7 +107,7 @@ void OnDraw(void)
 		if (color == 2) glColor3ub(230, 25, 25);
 		if (color == 3) glColor3ub(25, 25, 230);
 		 
-		if (lastX != -1)
+		if (lastX != -100000 && !eligiendoColor)
 		{
 			glLineWidth(10.0); // Grosor del "pincel"
 			glEnable(GL_LINE_SMOOTH);
@@ -135,9 +146,11 @@ void mouseClick(int button, int state, int x, int y) {
 
 		if (mouseX > colorX - anchoColor/2 && mouseX < colorX + anchoColor/2)
 		{
-			if (mouseY > colorY1 - anchoColor / 2 && mouseY < colorY1 + anchoColor / 2) { color = 1; printf("NEGRO\n"); }
-			if (mouseY > colorY2 - anchoColor / 2 && mouseY < colorY2 + anchoColor / 2) { color = 2; printf("ROJO\n"); }
-			if (mouseY > colorY3 - anchoColor / 2 && mouseY < colorY3 + anchoColor / 2) { color = 3; printf("AZUL\n"); }
+			if (mouseY > colorY1 - anchoColor / 2 && mouseY < colorY1 + anchoColor / 2) color = 1; //printf("NEGRO\n"); }
+			if (mouseY > colorY2 - anchoColor / 2 && mouseY < colorY2 + anchoColor / 2) color = 2; //printf("ROJO\n"); }
+			if (mouseY > colorY3 - anchoColor / 2 && mouseY < colorY3 + anchoColor / 2) color = 3; //printf("AZUL\n"); }
+
+			eligiendoColor = true;
 		}
 	}
 }
@@ -146,9 +159,11 @@ void mousePassive(int x, int y)
 {
 	mouseX = x;
 	mouseY = alto - y;
-	estado = 0;
+	//estado = 0;
 
-	lastX = -1;
+	lastX = -100000;
+	levantadoPendiente = true;
+	eligiendoColor = false;
 }
 
 void mouseDrag(int x, int y)
@@ -157,28 +172,74 @@ void mouseDrag(int x, int y)
 	mouseY = alto - y;
 	estado = 1;
 
-	if (datosRegistrados < 999)
+	if (datosRegistrados < 999 && !eligiendoColor)
 	{
-		if (primerDato)
+		if (levantadoPendiente)
 		{
-			puntos[datosRegistrados][0] = mouseX;
-			puntos[datosRegistrados][1] = mouseY;
-			primerDato = false;
-		}
-		else
-		if (distanciaAnterior(puntos[datosRegistrados][0], puntos[datosRegistrados][1]) > umbral)
-		{
-			datosRegistrados++;
-			puntos[datosRegistrados][0] = mouseX;
-			puntos[datosRegistrados][1] = mouseY;
-			std::cout << "(" << puntos[datosRegistrados][0] << "," << puntos[datosRegistrados][1] << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
-		
+			levantadoPendiente = false;
+			puntos[datosRegistrados].color = 0;
+
+			puntos[datosRegistrados].coordDesdeEsquina.x = mouseX;
+			puntos[datosRegistrados].coordDesdeEsquina.y = mouseY;
+			puntos[datosRegistrados].coordDesdeEsquina.z = 0;
+
+			puntos[datosRegistrados].coordDesdeCentro.x = mouseX - ancho / 2;
+			puntos[datosRegistrados].coordDesdeCentro.y = mouseY - alto / 2;
+			puntos[datosRegistrados].coordDesdeCentro.z = 0;
+
+			// aqui las coordenadas reales:
+			puntos[datosRegistrados].coordMundoReal.x = distLienzoX + cos(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
+			puntos[datosRegistrados].coordMundoReal.y = 0 + 20.0 / ancho * puntos[datosRegistrados].coordDesdeCentro.x;
+			puntos[datosRegistrados].coordMundoReal.z = distLienzoZ + sin(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
 
 			glColor3ub(250, 105, 25); // Dibuja puntos guardados
 			glPushMatrix();
-			glTranslated(puntos[datosRegistrados][0], puntos[datosRegistrados][1], 0);
+			glTranslated(puntos[datosRegistrados].coordDesdeEsquina.x, puntos[datosRegistrados].coordDesdeEsquina.y, 0);
 			glutSolidCube(5);
 			glPopMatrix();
+
+			//std::cout << "(" << puntos[datosRegistrados].coordDesdeCentro.x << "," << puntos[datosRegistrados].coordDesdeCentro.y << "," << puntos[datosRegistrados].coordDesdeCentro.z << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
+
+			std::stringstream mens;
+			mens << " X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << " Y" << puntos[datosRegistrados].coordMundoReal.y << " Z" << puntos[datosRegistrados].coordMundoReal.x << " C" << puntos[datosRegistrados].color << "\n";
+			puntos[datosRegistrados].mensaje = mens.str();
+
+			std::cout << puntos[datosRegistrados].mensaje;
+
+		}
+		else
+		if (distanciaAnterior(puntos[datosRegistrados].coordDesdeEsquina.x, puntos[datosRegistrados].coordDesdeEsquina.y) > umbral)
+		{
+			datosRegistrados++;
+
+			puntos[datosRegistrados].coordDesdeEsquina.x = mouseX;
+			puntos[datosRegistrados].coordDesdeEsquina.y = mouseY;
+			puntos[datosRegistrados].coordDesdeEsquina.z = 0;
+
+			puntos[datosRegistrados].coordDesdeCentro.x = mouseX - ancho/2;
+			puntos[datosRegistrados].coordDesdeCentro.y = mouseY - alto/2;
+			puntos[datosRegistrados].coordDesdeCentro.z = 0;
+
+			// aqui las coordenadas reales:
+			puntos[datosRegistrados].coordMundoReal.x = distLienzoX + cos(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
+			puntos[datosRegistrados].coordMundoReal.y = 0 + 20.0/ancho * puntos[datosRegistrados].coordDesdeCentro.x;
+			puntos[datosRegistrados].coordMundoReal.z = distLienzoZ + sin(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
+
+			puntos[datosRegistrados].color = color;
+
+			glColor3ub(250, 105, 25); // Dibuja puntos guardados
+			glPushMatrix();
+			glTranslated(puntos[datosRegistrados].coordDesdeEsquina.x, puntos[datosRegistrados].coordDesdeEsquina.y, 0);
+			glutSolidCube(5);
+			glPopMatrix();
+
+			//std::cout << "(" << puntos[datosRegistrados].coordDesdeCentro.x << "," << puntos[datosRegistrados].coordDesdeCentro.y << "," << puntos[datosRegistrados].coordDesdeCentro.z << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
+
+			std::stringstream mens;
+			mens << " X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << " Y" << puntos[datosRegistrados].coordMundoReal.y << " Z" << puntos[datosRegistrados].coordMundoReal.x << " C" << puntos[datosRegistrados].color << "\n";
+			puntos[datosRegistrados].mensaje = mens.str();
+
+			std::cout << puntos[datosRegistrados].mensaje;
 		}
 	}
 
