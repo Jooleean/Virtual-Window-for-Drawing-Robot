@@ -4,3 +4,7 @@ Trabajando en la colección de datos me doy cuenta de que hay dos opciones para 
 1. Grabar datos en el array cada n iteraciones. Con un iterador si se hace iterador%n solo se toman muestras cada 5 o 10 actualizaciones. 
 
 2. Grabar datos solo si la posición del ratón supera una distancia n al dato anterior guardado. Esto equilibra el espaciado pero requiere la implementación de otra función. Es mejor así que haré esto.
+
+
+07/04/2026 20:23
+Consigo que un trazo continuo se vuelva una colección de puntos con coordenadas, fijando un umbral de distancia para determinar la precisión del trazo copiado.
