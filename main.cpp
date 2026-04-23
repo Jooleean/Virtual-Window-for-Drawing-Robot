@@ -1,9 +1,9 @@
 #include <iostream>
-#include "freeglut.h"
-#include "puntos.h"
-
-#include <iomanip> 
-#include <sstream>
+#include "freeglut.h" 
+#include "puntos.h" // tiene la informacion de cada punto
+#include "SerialClass.h" // para conectar con arduino
+#include <iomanip> // para precision de floats en string
+#include <sstream> // para mezclar variables en strings
 
 void OnDraw(void);		 
 void OnTimer(int value); 
@@ -36,6 +36,8 @@ int datosRegistrados = 0;
 float umbral = 15;
 float distanciaAnterior(int x, int y);
 
+extern void DatosaArduino()
+
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
@@ -67,6 +69,10 @@ int main(int argc, char* argv[])
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();*/
+
+	Serial* Arduino;
+	char puerto[] = "COM3";
+	Arduino = new Serial((char*)puerto); // Comunicación con Arduino
 
 	glutMainLoop();
 

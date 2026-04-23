@@ -123,12 +123,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\Visual Studio\Siete Segmentos Colección\OFICIAL\SerialClass\SerialClass.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="mandoArduino.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="rastroCuadrados.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\Visual Studio\Siete Segmentos Colección\OFICIAL\SerialClass\SerialClass.h" />
     <ClInclude Include="puntos.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
