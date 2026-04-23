@@ -13,3 +13,6 @@ void DatosaArduino(Serial* Arduino, int largoCadena, char display[100][8])
 		}
 	}
 }
+
+// avisar al main de su existencia (extern)
+

@@ -36,8 +36,6 @@ int datosRegistrados = 0;
 float umbral = 15;
 float distanciaAnterior(int x, int y);
 
-extern void DatosaArduino()
-
 int main(int argc, char* argv[])
 {
 	glutInit(&argc, argv);
