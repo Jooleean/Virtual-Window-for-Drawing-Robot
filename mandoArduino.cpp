@@ -1,18 +1,53 @@
 #include "SerialClass.h"
+#include <iomanip> // para precision de floats en string
+#include <sstream> // para mezclar variables en strings
+#include "iostream"
+
 #define DELAY 500
 
-void DatosaArduino(Serial* Arduino, int largoCadena, char display[100][8])
+char recibido = 'N';
+
+void mensajeParaArduino(Serial* Arduino, std::string mensaje)
 {
-	Sleep(500);
+
 	if (Arduino->IsConnected())
 	{
-		for (int i = 0; i < largoCadena; i++)
+		Arduino->WriteData((char*)mensaje.c_str(), mensaje.length());
+
+		std::cout << "esperando... ";
+
+		while (recibido != 'K')
 		{
-			Arduino->WriteData((char*)display[i], 7);
-			Sleep(DELAY - 10);
+			Arduino->ReadData(&recibido, 1);
 		}
+
+		std::cout << "Mensaje entregado correctamente\n";
+     	recibido = 'N';
+
+
+		char recepcionAngulos[256];
+		bool completado = false;
+
+		while (!completado)
+		{
+			int bytesLeidos = Arduino->ReadData(recepcionAngulos, 255);
+
+			if (bytesLeidos > 0)
+			{
+				recepcionAngulos[bytesLeidos] = '\0'; 
+				std::cout << recepcionAngulos; 
+
+				if (strchr(recepcionAngulos, 'm')) {
+					completado = true;
+					
+				}
+			}
+		}
+
+		std::cout << ".........................\n";
+
 	}
 }
 
-// avisar al main de su existencia (extern)
+
 

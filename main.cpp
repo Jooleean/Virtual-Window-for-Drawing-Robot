@@ -26,15 +26,21 @@ int lastX = -100000, lastY;
 bool levantadoPendiente = true;
 bool eligiendoColor = false;
 
-const float distLienzoX = 20;
+const float distLienzoX = 15;
 const float distLienzoY = 0;
-const float distLienzoZ = 10;
+const float distLienzoZ = -5;
 
 Punto puntos[1000];
 int datosRegistrados = 0;
 
-float umbral = 15;
+float umbral = 20;
 float distanciaAnterior(int x, int y);
+
+// Nombre y puerto de Arduino
+Serial* Arduino;
+char puerto[] = "COM3";
+void mensajeParaArduino(Serial* Arduino, std::string mensaje);
+bool mandando = false;
 
 int main(int argc, char* argv[])
 {
@@ -68,9 +74,7 @@ int main(int argc, char* argv[])
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();*/
 
-	Serial* Arduino;
-	char puerto[] = "COM3";
-	Arduino = new Serial((char*)puerto); // Comunicación con Arduino
+	Arduino = new Serial((char*)puerto);
 
 	glutMainLoop();
 
@@ -129,6 +133,29 @@ void OnDraw(void)
 }
 void OnKeyboardDown(unsigned char key, int x_t, int y_t)
 {
+	if(mandando == false)
+	if (key == 's')
+	{
+			mandando = true;
+			std::cout << "Datos Registrados = " << datosRegistrados << "\n";
+
+			for (int i = 0; i < datosRegistrados; i++)
+			{
+				mensajeParaArduino(Arduino, puntos[i].mensaje);
+			}
+	}
+
+	if (key == 'r')
+	{
+		// reiniciar la pantalla a blanco
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		mandando = false;
+		datosRegistrados = 0; // va a quedar basura del dibujo anterior, pero solo va a tomar en cuenta los datos hasta datosRegistrados;
+
+	}
 
 }
 
@@ -180,6 +207,7 @@ void mouseDrag(int x, int y)
 	{
 		if (levantadoPendiente)
 		{
+
 			levantadoPendiente = false;
 			puntos[datosRegistrados].color = 0;
 
@@ -193,7 +221,7 @@ void mouseDrag(int x, int y)
 
 			// aqui las coordenadas reales:
 			puntos[datosRegistrados].coordMundoReal.x = distLienzoX + cos(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
-			puntos[datosRegistrados].coordMundoReal.y = 0 + 20.0 / ancho * puntos[datosRegistrados].coordDesdeCentro.x;
+			puntos[datosRegistrados].coordMundoReal.y = 0 - 20.0 / ancho * puntos[datosRegistrados].coordDesdeCentro.x;
 			puntos[datosRegistrados].coordMundoReal.z = distLienzoZ + sin(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
 
 			glColor3ub(250, 105, 25); // Dibuja puntos guardados
@@ -205,16 +233,17 @@ void mouseDrag(int x, int y)
 			//std::cout << "(" << puntos[datosRegistrados].coordDesdeCentro.x << "," << puntos[datosRegistrados].coordDesdeCentro.y << "," << puntos[datosRegistrados].coordDesdeCentro.z << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
 
 			std::stringstream mens;
-			mens << " X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << " Y" << puntos[datosRegistrados].coordMundoReal.y << " Z" << puntos[datosRegistrados].coordMundoReal.x << " C" << puntos[datosRegistrados].color << "\n";
+			mens << "X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << "Y" << puntos[datosRegistrados].coordMundoReal.y << "Z" << puntos[datosRegistrados].coordMundoReal.z << "C" << puntos[datosRegistrados].color << "\n";
 			puntos[datosRegistrados].mensaje = mens.str();
 
 			std::cout << puntos[datosRegistrados].mensaje;
 
+			datosRegistrados++;
+
 		}
 		else
-		if (distanciaAnterior(puntos[datosRegistrados].coordDesdeEsquina.x, puntos[datosRegistrados].coordDesdeEsquina.y) > umbral)
+		if (distanciaAnterior(puntos[datosRegistrados-1].coordDesdeEsquina.x, puntos[datosRegistrados-1].coordDesdeEsquina.y) > umbral)
 		{
-			datosRegistrados++;
 
 			puntos[datosRegistrados].coordDesdeEsquina.x = mouseX;
 			puntos[datosRegistrados].coordDesdeEsquina.y = mouseY;
@@ -226,7 +255,7 @@ void mouseDrag(int x, int y)
 
 			// aqui las coordenadas reales:
 			puntos[datosRegistrados].coordMundoReal.x = distLienzoX + cos(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
-			puntos[datosRegistrados].coordMundoReal.y = 0 + 20.0/ancho * puntos[datosRegistrados].coordDesdeCentro.x;
+			puntos[datosRegistrados].coordMundoReal.y = 0 - 20.0/ancho * puntos[datosRegistrados].coordDesdeCentro.x;
 			puntos[datosRegistrados].coordMundoReal.z = distLienzoZ + sin(PI / 4) * 20.0 / alto * puntos[datosRegistrados].coordDesdeCentro.y;
 
 			puntos[datosRegistrados].color = color;
@@ -240,10 +269,13 @@ void mouseDrag(int x, int y)
 			//std::cout << "(" << puntos[datosRegistrados].coordDesdeCentro.x << "," << puntos[datosRegistrados].coordDesdeCentro.y << "," << puntos[datosRegistrados].coordDesdeCentro.z << ")" << "    Datos Registrados:" << datosRegistrados << std::endl;
 
 			std::stringstream mens;
-			mens << " X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << " Y" << puntos[datosRegistrados].coordMundoReal.y << " Z" << puntos[datosRegistrados].coordMundoReal.x << " C" << puntos[datosRegistrados].color << "\n";
+			mens << "X" << std::fixed << std::setprecision(2) << puntos[datosRegistrados].coordMundoReal.x << "Y" << puntos[datosRegistrados].coordMundoReal.y << "Z" << puntos[datosRegistrados].coordMundoReal.z << "C" << puntos[datosRegistrados].color << "\n";
 			puntos[datosRegistrados].mensaje = mens.str();
 
 			std::cout << puntos[datosRegistrados].mensaje;
+
+			datosRegistrados++;
+
 		}
 	}
 
